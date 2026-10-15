@@ -244,6 +244,7 @@
           $("#codeVal").textContent = res.editCode;
           $("#codeBox").hidden = false;
           setStatus(`Card saved and filed under ${letterOf(res.card.category)}.`, "ok");
+          $("#codeBox").scrollIntoView({ block: "center" });
         }
       }
     } catch (err) {
@@ -279,8 +280,21 @@
 
   // ---------- views + list interactions ----------
   function setView(v) { document.body.dataset.view = v; window.scrollTo(0, 0); if (v === "home") history.replaceState(null, "", location.pathname); }
-  const toForm = (m) => { if (m !== undefined) loadIntoForm(m); setStatus(""); setView("form"); history.replaceState(null, "", "#join"); setTimeout(() => form.elements.name.focus({ preventScroll: true }), 50); };
+  const toForm = (m) => {
+    if (m !== undefined) loadIntoForm(m);
+    setStatus(""); setView("form"); history.replaceState(null, "", "#join");
+    // Phones: don't pop the keyboard open on arrival, it hides the page heading
+    if (!matchMedia("(pointer:coarse)").matches) setTimeout(() => form.elements.name.focus({ preventScroll: true }), 50);
+  };
   $("#jumpForm").addEventListener("click", () => toForm(editingId ? null : undefined));
+  $("#jumpFormM").addEventListener("click", () => toForm(editingId ? null : undefined));
+  const toTop = $("#toTop");
+  let topTick = false;
+  window.addEventListener("scroll", () => {
+    if (topTick) return; topTick = true;
+    requestAnimationFrame(() => { toTop.hidden = window.scrollY < 900; topTick = false; });
+  }, { passive: true });
+  toTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion:reduce)").matches ? "auto" : "smooth" }));
   $("#backBtn").addEventListener("click", () => setView("home"));
   $("#q").addEventListener("input", (e) => { query = e.target.value; render(); });
   $("#area").addEventListener("change", (e) => { activeArea = e.target.value; render(); });

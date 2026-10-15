@@ -6,6 +6,13 @@
 <title>Man Village Rolodex</title>
 <meta name="description" content="Man Village member directory: business cards filed A–Z by occupation. Search for the trade you need or add your own card.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="apple-mobile-web-app-title" content="Man Village">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101B31" media="(prefers-color-scheme: dark)">
+<meta name="format-detection" content="telephone=no">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Archivo:wght@400;500;600;700&display=swap">
@@ -15,11 +22,23 @@
 
 <header class="mast">
   <div class="wrap">
-    <div>
-      <h1>Man Village <span>Rolodex</span></h1>
+    <div class="brand">
+      <h1><a href="/" class="home">
+        <svg class="mark" viewBox="0 0 120 92" aria-hidden="true">
+          <circle cx="25" cy="34" r="11" class="m-side"/><path d="M4 92V76c0-12 9-20 21-20s21 8 21 20v16Z" class="m-side"/>
+          <circle cx="95" cy="34" r="11" class="m-side"/><path d="M74 92V76c0-12 9-20 21-20s21 8 21 20v16Z" class="m-side"/>
+          <path d="M24 92V72c0-16 15-27 36-27s36 11 36 27v20Z" class="m-gap"/>
+          <circle cx="60" cy="20" r="18" class="m-head"/>
+          <path d="M27 92V73c0-14 13-24 33-24s33 10 33 24v19Z" class="m-side"/>
+          <path d="M50 49l10 13 10-13Z" class="m-gap"/><path d="M57 54h6l2 30-5 6-5-6Z" class="m-head"/>
+        </svg>
+        <span class="t1">Man Village</span> <span class="t2">Rolodex</span></a></h1>
       <p>Every member card in one place, filed A to Z by occupation. Search for the trade you need or add your own card.</p>
     </div>
-    <div class="count" id="count"><b>0</b>members</div>
+    <div class="mastside">
+      <div class="count" id="count"><b>0</b>members</div>
+      <button class="btn addm" id="jumpFormM" type="button">Add your card</button>
+    </div>
   </div>
 </header>
 
@@ -31,7 +50,7 @@
         <input id="q" type="search" placeholder="Search occupations: barber, plumber, realtor…" autocomplete="off">
       </label>
       <select id="area" class="sel" aria-label="Filter by town or service area"><option value="">All towns</option></select>
-      <select id="sort" class="sel" aria-label="Sort cards"><option value="cat">Sort: Occupation A–Z</option><option value="name">Sort: Name A–Z</option></select>
+      <select id="sort" class="sel" aria-label="Sort cards"><option value="cat">Occupation A–Z</option><option value="name">Name A–Z</option></select>
       <button class="btn" id="jumpForm" type="button">Add your card</button>
     </div>
     <nav class="tabs" id="tabs" aria-label="Jump to letter"></nav>
@@ -46,10 +65,12 @@
     </section>
 
     <aside class="panel" id="panel">
-      <div class="pcol">
+      <div class="phead">
         <button class="back" type="button" id="backBtn">← Back to the rolodex</button>
         <h2 id="formTitle">Fill out your member card</h2>
         <p class="sub" id="formSub">Type in the form and your card fills in as you go. Save it and it's filed in the rolodex right away.</p>
+      </div>
+      <div class="pcol">
         <div class="previewlabel">Live preview · back</div>
         <div id="preview"></div>
         <div class="previewlabel">Live preview · front</div>
@@ -108,6 +129,10 @@
     </div>
   </div>
 </footer>
+
+<button class="totop" id="toTop" type="button" aria-label="Back to top" hidden>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
 
 <script src="/app.js"></script>
 </body>

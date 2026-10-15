@@ -177,3 +177,102 @@ footer.foot .wrap{padding-block:18px 28px;display:flex;flex-wrap:wrap;gap:12px;j
 .adminbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .adminbar input{height:34px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);padding:0 10px;min-width:0}
 .pill{display:inline-block;background:var(--navy);color:var(--bg);border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;letter-spacing:.04em}
+
+/* ===== Header logo (same mark as the member card) ===== */
+:root{ --mark-side:#1460D2; --mark-head:#0B2E6E }
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){ --mark-side:#5B9BFF; --mark-head:#B9D0FF }}
+:root[data-theme="dark"]{ --mark-side:#5B9BFF; --mark-head:#B9D0FF }
+.brand{min-width:0}
+.mast h1 a.home{color:inherit;text-decoration:none;display:inline-flex;align-items:flex-end;flex-wrap:wrap;column-gap:.28em;row-gap:0}
+.mast h1 .mark{height:1.18em;width:auto;flex:none;margin-right:.06em;margin-bottom:.02em}
+.mast h1 .t1{color:var(--navy)}
+.mast h1 .t2{color:var(--blue)}
+.mark .m-side{fill:var(--mark-side)}
+.mark .m-head{fill:var(--mark-head)}
+.mark .m-gap{fill:var(--surface)}
+
+/* ===== Touch + iPhone / mobile browser fixes ===== */
+html{-webkit-tap-highlight-color:transparent}
+button,select,a,.chip,.tabs button{touch-action:manipulation}
+/* iOS Safari zooms into any field under 16px; keep every field at 16px */
+.field input,.field textarea,.sel,.search input,.adminbar input{font-size:16px}
+.search input{-webkit-appearance:none;appearance:none}
+.search input::-webkit-search-decoration{-webkit-appearance:none}
+.sel{-webkit-appearance:none;appearance:none;padding-right:38px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%238892a6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 15px center;background-size:12px 8px;cursor:pointer;color:var(--fg)}
+.field input,.field textarea{-webkit-appearance:none;appearance:none}
+/* Safari before 16.2 lacks color-mix: give a plain fallback first */
+.tools{background:var(--bg);-webkit-backdrop-filter:blur(8px)}
+@supports (background:color-mix(in srgb,red 50%,blue)){.tools{background:color-mix(in srgb,var(--bg) 92%,transparent)}}
+.codebox{background:var(--surface)}
+@supports (background:color-mix(in srgb,red 50%,blue)){.codebox{background:color-mix(in srgb,var(--blue) 10%,var(--surface))}}
+.btn.danger{border-color:var(--line)}
+footer.foot .wrap{padding-bottom:max(28px,calc(env(safe-area-inset-bottom,0px) + 16px))}
+
+/* Bigger tap targets on touch screens */
+@media (pointer:coarse){
+  .tabs button{width:38px;height:38px;font-size:14px}
+  .btn.small{height:38px;padding:0 14px;font-size:13px}
+  .chip{padding:7px 14px;font-size:14px}
+  .back{padding:6px 0}
+}
+
+/* Form page: header row spans, form before preview on phones */
+.phead{grid-column:1/-1;display:flex;flex-direction:column;gap:6px}
+.phead .sub{margin:0}
+@media (max-width:900px){
+  aside.panel{display:flex;flex-direction:column;gap:20px}
+  .phead{order:0}.fcol{order:1}.pcol{order:2}
+}
+
+/* Phones */
+@media (max-width:640px){
+  header.mast .wrap{padding-block:16px 14px;align-items:flex-start}
+  .mast h1{font-size:30px}
+  .mast p{font-size:14px}
+  .count{align-self:flex-end}
+  /* only the search box + A–Z bar stay pinned while scrolling */
+  .tools .wrap{padding-block:10px;gap:8px}
+  .searchrow{gap:8px}
+  .search{height:44px;flex-basis:100%}
+  .sel{height:42px;font-size:15px;flex:1 1 calc(50% - 4px)}
+  .searchrow .btn{display:none}
+  main .wrap{padding-block:18px 48px}
+  .group{scroll-margin-top:120px}
+  .fcol{padding:16px;border-radius:12px}
+  .mast .addm{display:inline-flex}
+}
+@media (max-width:640px) and (pointer:coarse){.sel{font-size:16px}}
+.mast .addm{align-items:center;height:40px;font-size:14px;padding:0 16px}
+@media (min-width:641px){.mast .addm{display:none}}
+
+/* Floating back-to-top on long lists */
+.totop{position:fixed;z-index:6;right:max(16px,calc(env(safe-area-inset-right,0px) + 12px));bottom:max(16px,calc(env(safe-area-inset-bottom,0px) + 12px));
+  width:48px;height:48px;border-radius:50%;border:0;background:var(--navy);color:var(--bg);display:grid;place-items:center;cursor:pointer;
+  box-shadow:0 6px 18px -6px rgba(11,46,110,.55)}
+body[data-view="form"] .totop{display:none}
+
+/* Older iOS (before 16) has no container queries: use the stacked phone card everywhere small */
+@supports not (container-type:inline-size){
+  .mvcard{padding:16px 16px 0;min-height:0}
+  .mvcard .swoosh{width:calc(100% + 32px);margin:18px -16px 0;height:34px}
+  .mvbody,.front .mvbody{grid-template-columns:1fr;row-gap:14px}
+  .mvcard .logo{font-size:30px}.front .logo{font-size:34px}
+  .fields{gap:9px;margin-top:10px}
+  .f,.stack,.misc{font-size:12.5px}.stack{gap:3px}.stack + .stack{margin-top:10px}
+  .rightcol{padding-top:0}.contactico{gap:8px;margin-top:10px}
+  .ci{font-size:14px;gap:10px}.ci .dot{width:28px;height:28px}
+  .frontinfo{text-align:left;padding-bottom:0}
+  .frontinfo .biz{font-size:22px}.frontinfo .who{font-size:14px}.frontinfo .occ{font-size:11px}
+}
+.mastside{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+@media (max-width:640px){
+  header.mast .wrap{flex-direction:column;align-items:stretch;gap:12px}
+  .mastside{flex-direction:row;align-items:center;justify-content:space-between}
+}
+/* Button text that stays readable on the accent in both themes */
+:root{ --on-accent:#FFFFFF }
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){ --on-accent:#06122A }}
+:root[data-theme="dark"]{ --on-accent:#06122A }
+.btn:not(.ghost):not(.danger),.tabs button.on{color:var(--on-accent)}
