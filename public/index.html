@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Man Village Rolodex</title>
+<meta name="description" content="Man Village member directory: business cards filed A–Z by occupation. Search for the trade you need or add your own card.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Archivo:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body data-view="home">
+
+<header class="mast">
+  <div class="wrap">
+    <div>
+      <h1>Man Village <span>Rolodex</span></h1>
+      <p>Every member card in one place, filed A to Z by occupation. Search for the trade you need or add your own card.</p>
+    </div>
+    <div class="count" id="count"><b>0</b>members</div>
+  </div>
+</header>
+
+<div class="tools">
+  <div class="wrap">
+    <div class="searchrow">
+      <label class="search" for="q">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="Search occupations: barber, plumber, realtor…" autocomplete="off">
+      </label>
+      <select id="area" class="sel" aria-label="Filter by town or service area"><option value="">All towns</option></select>
+      <select id="sort" class="sel" aria-label="Sort cards"><option value="cat">Sort: Occupation A–Z</option><option value="name">Sort: Name A–Z</option></select>
+      <button class="btn" id="jumpForm" type="button">Add your card</button>
+    </div>
+    <nav class="tabs" id="tabs" aria-label="Jump to letter"></nav>
+  </div>
+</div>
+
+<main>
+  <div class="wrap">
+    <section id="dir" aria-label="Member directory" style="min-width:0">
+      <div class="chips" id="chips"></div>
+      <div id="list"><div class="empty"><h3>Loading the rolodex…</h3></div></div>
+    </section>
+
+    <aside class="panel" id="panel">
+      <div class="pcol">
+        <button class="back" type="button" id="backBtn">← Back to the rolodex</button>
+        <h2 id="formTitle">Fill out your member card</h2>
+        <p class="sub" id="formSub">Type in the form and your card fills in as you go. Save it and it's filed in the rolodex right away.</p>
+        <div class="previewlabel">Live preview · back</div>
+        <div id="preview"></div>
+        <div class="previewlabel">Live preview · front</div>
+        <div id="previewFront"></div>
+      </div>
+      <div class="fcol">
+        <div class="codebox" id="codeBox" hidden>
+          <span class="previewlabel">Your edit code</span>
+          <div class="row"><b id="codeVal"></b><button class="btn ghost small" type="button" id="copyCode">Copy</button></div>
+          <p>Write this down. You need it to change or remove your card later. This browser remembers it for you.</p>
+        </div>
+        <form id="form" novalidate>
+          <div class="fgroup" id="codeGroup" hidden>
+            <div class="gl">Edit code</div>
+            <div class="field"><label for="f-code">Code you got when you saved this card <span class="req">*</span></label><input id="f-code" autocomplete="off" maxlength="12" style="text-transform:uppercase;letter-spacing:.12em"></div>
+          </div>
+          <div class="fgroup">
+            <div class="gl">Member</div>
+            <div class="field"><label for="f-name">Name <span class="req">*</span></label><input id="f-name" name="name" maxlength="60" required></div>
+            <div class="two">
+              <div class="field"><label for="f-phone">Phone</label><input id="f-phone" name="phone" inputmode="tel" maxlength="30"></div>
+              <div class="field"><label for="f-fax">Fax</label><input id="f-fax" name="fax" inputmode="tel" maxlength="30"></div>
+            </div>
+            <div class="field"><label for="f-email">Emails</label><input id="f-email" name="email" maxlength="120" placeholder="you@example.com"></div>
+            <div class="field"><label for="f-social">Social media</label><input id="f-social" name="social" maxlength="120" placeholder="@handle, IG, Facebook"></div>
+            <div class="field"><label for="f-website">Website</label><input id="f-website" name="website" maxlength="120" inputmode="url" placeholder="yourbusiness.com"></div>
+          </div>
+          <div class="fgroup">
+            <div class="gl">Business</div>
+            <div class="field"><label for="f-business">Business / organization / other</label><input id="f-business" name="business" maxlength="80"></div>
+            <div class="field"><label for="f-category">Occupation / category <span class="req">*</span></label><input id="f-category" name="category" list="catlist" maxlength="50" required placeholder="e.g. Barber, Electrician, Real Estate"><datalist id="catlist"></datalist></div>
+            <div class="field"><label for="f-area">Town / service area</label><input id="f-area" name="area" list="arealist" maxlength="60" placeholder="Town, county, or region you serve"><datalist id="arealist"></datalist></div>
+            <div class="field"><label for="f-activities">What the business or organization does</label><textarea id="f-activities" name="activities" maxlength="220"></textarea></div>
+            <div class="field"><label for="f-misc">Misc</label><input id="f-misc" name="misc" maxlength="120"></div>
+            <div class="hp" aria-hidden="true"><label for="f-company_url">Leave this empty</label><input id="f-company_url" name="company_url" tabindex="-1" autocomplete="off"></div>
+          </div>
+          <div class="status" id="status" role="status"></div>
+          <div class="formacts">
+            <button class="btn" type="submit" id="saveBtn">Save to rolodex</button>
+            <button class="btn ghost" type="button" id="resetBtn">Start a new card</button>
+            <button class="btn danger" type="button" id="delBtn" hidden>Delete card</button>
+          </div>
+        </form>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span>Man Village · Member Rolodex</span>
+    <div class="adminbar" id="adminBar">
+      <button class="linkbtn" type="button" id="adminToggle">Admin</button>
+      <span id="adminForm" hidden><input id="adminKey" type="password" placeholder="Admin key" autocomplete="current-password" aria-label="Admin key"> <button class="btn small" type="button" id="adminGo">Sign in</button></span>
+      <span id="adminOn" hidden><span class="pill">Admin mode</span> <button class="linkbtn" type="button" id="adminOff">Sign out</button></span>
+    </div>
+  </div>
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,504 @@
+<title>Man Village Rolodex</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Archivo:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: directory masthead → A–Z tab rail (sticky) → rolodex of member cards, form + live card preview in a side panel */
+:root{
+  --bg:#EEF2F9; --surface:#FFFFFF; --line:#D3DCEC; --fg:#0D1B3A; --muted:#55627D;
+  --navy:#0B2E6E; --blue:#1460D2; --bright:#2B80F4; --tab:#FFFFFF; --tab-off:#B4BFD3;
+  --danger:#B42318;
+  --card-bg:#FFFFFF; --card-ink:#0B2E6E; --card-label:#1A58C7; --card-line:#2F6AD0; --card-val:#0D1B3A;
+  --display:"Montserrat",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --body:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#08101F; --surface:#101B31; --line:#22324F; --fg:#E6ECF7; --muted:#97A5C0;
+  --navy:#8DB4FF; --blue:#5B9BFF; --bright:#5B9BFF; --tab:#101B31; --tab-off:#3A4A68; --danger:#FF8A80;
+  color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#08101F; --surface:#101B31; --line:#22324F; --fg:#E6ECF7; --muted:#97A5C0;
+  --navy:#8DB4FF; --blue:#5B9BFF; --bright:#5B9BFF; --tab:#101B31; --tab-off:#3A4A68; --danger:#FF8A80;
+  color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--bright);outline-offset:2px}
+
+/* Masthead */
+header.mast{background:var(--surface);border-bottom:1px solid var(--line)}
+header.mast .wrap{padding-block:22px 18px;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+.mast h1{margin:0;font-family:var(--display);font-weight:900;font-size:clamp(28px,5vw,44px);letter-spacing:-.035em;line-height:1;color:var(--navy);text-wrap:balance}
+.mast h1 span{color:var(--blue)}
+.mast p{margin:6px 0 0;color:var(--muted);max-width:60ch}
+.count{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums}
+.count b{color:var(--navy);font-size:22px;letter-spacing:0;margin-right:4px}
+
+/* Search + tabs */
+.tools{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.tools .wrap{padding-block:12px;display:flex;flex-direction:column;gap:10px}
+.searchrow{display:flex;gap:10px;flex-wrap:wrap}
+.search{flex:1 1 280px;min-width:0;display:flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--line);border-radius:999px;padding:0 16px;height:46px}
+.search:focus-within{border-color:var(--blue)}
+.search svg{flex:none;color:var(--muted)}
+.search input{border:0;background:transparent;outline:none;flex:1;min-width:0;height:100%;font-size:16px}
+.btn{height:46px;padding:0 20px;border-radius:999px;border:0;background:var(--blue);color:#fff;font-family:var(--display);font-weight:700;letter-spacing:.02em;cursor:pointer;white-space:nowrap}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--blue);border:1.5px solid var(--line)}
+.btn.small{height:32px;padding:0 12px;font-size:12px}
+.btn.danger{background:transparent;color:var(--danger);border:1.5px solid color-mix(in srgb,var(--danger) 40%,transparent)}
+.btn.danger.armed{background:var(--danger);color:#fff}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;width:32px;height:32px;border-radius:7px 7px 3px 3px;border:1px solid var(--line);background:var(--tab);font-family:var(--display);font-weight:800;font-size:13px;color:var(--navy);cursor:pointer}
+.tabs button[disabled]{color:var(--tab-off);cursor:default;background:transparent}
+.tabs button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+.sel{height:46px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);padding:0 14px;font-size:14px;font-weight:600;max-width:100%;min-width:0}
+@media (max-width:640px){.searchrow .sel{flex:1 1 40%}.searchrow .btn{flex:1 1 100%}}
+
+/* Main layout: home = every card; form view = preview + form */
+main .wrap{padding-block:24px 64px}
+body[data-view="form"] .tools,body[data-view="form"] #dir{display:none}
+body[data-view="home"] #panel{display:none}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,540px),1fr));gap:22px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px;font-size:13px;cursor:pointer;color:var(--fg)}
+.chip small{color:var(--muted);margin-left:4px;font-variant-numeric:tabular-nums}
+.chip.on{background:var(--navy);border-color:var(--navy);color:var(--bg)}
+.chip.on small{color:inherit;opacity:.75}
+
+.group{display:flex;flex-direction:column;gap:14px;margin-bottom:30px;scroll-margin-top:140px}
+.grouphead{display:flex;align-items:center;gap:12px}
+.letter{font-family:var(--display);font-weight:900;font-size:30px;color:var(--blue);line-height:1;width:44px;height:44px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px 10px 4px 4px}
+.grouphead .rule{flex:1;height:1px;background:var(--line)}
+.grouphead .cats{font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.entry{display:flex;flex-direction:column;gap:8px}
+.entry .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.entry .cat{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--navy)}
+.entry .acts{display:flex;gap:6px;flex-wrap:wrap}
+
+.empty{background:var(--surface);border:1.5px dashed var(--line);border-radius:var(--radius);padding:36px 24px;text-align:center;color:var(--muted)}
+.empty h3{margin:0 0 6px;font-family:var(--display);color:var(--navy);font-size:20px}
+.empty p{margin:0 auto 16px;max-width:46ch}
+
+/* Form panel */
+aside.panel{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:900px){aside.panel{grid-template-columns:minmax(0,1fr)}}
+.pcol{display:flex;flex-direction:column;gap:14px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px)}
+@media (max-width:900px){.pcol{position:static}}
+.fcol{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.back{align-self:flex-start;background:none;border:0;color:var(--blue);font-weight:600;cursor:pointer;padding:0}
+.panel h2{margin:0;font-family:var(--display);font-weight:800;font-size:20px;color:var(--navy);letter-spacing:-.01em}
+.panel .sub{margin:-10px 0 0;color:var(--muted);font-size:13px}
+form{display:flex;flex-direction:column;gap:12px}
+.fgroup{display:flex;flex-direction:column;gap:10px;padding-top:12px;border-top:1px solid var(--line)}
+.fgroup > .gl{font-family:var(--display);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--blue)}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.field input,.field textarea{background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:9px 11px;font-size:15px;min-width:0;width:100%}
+.field textarea{resize:vertical;min-height:62px}
+.field input:focus,.field textarea:focus{border-color:var(--blue);outline:none}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:420px){.two{grid-template-columns:1fr}}
+.req{color:var(--danger)}
+.formacts{display:flex;gap:8px;flex-wrap:wrap}
+.status{font-size:13px;min-height:20px;color:var(--muted)}
+.status.ok{color:#1F8A4C}.status.err{color:var(--danger)}
+.note{font-size:13px;background:var(--bg);border-radius:8px;padding:10px 12px;color:var(--muted)}
+.previewlabel{font-family:var(--display);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+/* ===== The member card (Devin's design) ===== */
+.mv{container-type:inline-size;width:100%;max-width:100%}
+.mvcard{position:relative;background:var(--card-bg);color:var(--card-ink);border:1.5px solid #2B5FB8;box-shadow:0 2px 0 rgba(11,46,110,.06),0 10px 28px -14px rgba(11,46,110,.45);font-family:var(--display);overflow:hidden;
+  padding:2.4cqw 3cqw 0;min-height:40cqw;display:flex;flex-direction:column}
+.mvcard .swoosh{display:block;width:calc(100% + 6cqw);margin:auto -3cqw 0;height:6.5cqw;margin-top:auto}
+.mvbody{display:grid;grid-template-columns:47% 1fr;column-gap:4%;align-items:start;flex:1}
+.logo{display:flex;flex-direction:column;align-items:flex-start;line-height:.86;width:max-content}
+.logo .r1{display:flex;align-items:flex-end;gap:.2em}
+.logo .w{font-weight:900;letter-spacing:-.055em;color:#0B2E6E}
+.logo .r2{padding-left:.95em}
+.logo .mem{color:#1460D2;font-weight:800;letter-spacing:.01em;padding-left:1.15em;line-height:1.05;margin-top:.08em}
+.logo svg{display:block}
+.mvcard .logo{font-size:6.2cqw}
+.mvcard .logo .mem{font-size:.62em}
+.fields{display:flex;flex-direction:column;gap:1.25cqw;margin-top:1.4cqw}
+.f{display:flex;align-items:baseline;gap:.8cqw;font-size:max(10px,1.7cqw)}
+.f .l{color:var(--card-label);font-weight:800;letter-spacing:.01em;flex:none;text-transform:uppercase}
+.f .v{flex:1;min-width:0;border-bottom:1.5px solid var(--card-line);color:var(--card-val);font-family:var(--body);font-weight:600;padding:0 .3em .1em;overflow-wrap:anywhere;min-height:1.5em}
+.stack{display:flex;flex-direction:column;gap:.5cqw;font-size:max(10px,1.7cqw)}
+.stack + .stack{margin-top:1.4cqw}
+.stack .l{color:var(--card-label);font-weight:800;text-transform:uppercase}
+.stack .v{border-bottom:1.5px solid var(--card-line);color:var(--card-val);font-family:var(--body);font-weight:600;padding:.2em .3em .1em;overflow-wrap:anywhere;min-height:1.6em}
+.stack .v.multi{background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(1.6em - 1.5px),var(--card-line) calc(1.6em - 1.5px),var(--card-line) 1.6em);border-bottom:0;line-height:1.6em;padding-top:0;min-height:3.2em}
+.rightcol{padding-top:7cqw}
+.misc{margin-top:1.4cqw;font-size:max(10px,1.7cqw)}
+.ph{color:#9AA8C2;font-weight:500}
+
+/* Front face */
+.front .mvbody{grid-template-columns:auto 1fr}
+.front .logo{font-size:7.4cqw}
+.contactico{display:flex;flex-direction:column;gap:1.4cqw;margin-top:1.4cqw}
+.ci{display:flex;align-items:center;gap:1.4cqw;font-family:var(--body);font-weight:600;color:var(--card-val);font-size:max(11px,1.9cqw)}
+.ci .dot{flex:none;width:4.4cqw;height:4.4cqw;min-width:24px;min-height:24px;border-radius:50%;background:#0B2E6E;display:grid;place-items:center}
+.ci .dot svg{width:55%;height:55%}
+.frontinfo{align-self:center;text-align:right;padding-bottom:4cqw;min-width:0}
+.frontinfo .biz{font-weight:900;font-size:max(14px,3.6cqw);letter-spacing:-.02em;color:#0B2E6E;line-height:1.05;overflow-wrap:anywhere;text-wrap:balance}
+.frontinfo .who{font-family:var(--body);font-weight:600;font-size:max(11px,2cqw);color:#1460D2;margin-top:.6cqw}
+.frontinfo .occ{font-weight:800;font-size:max(10px,1.5cqw);letter-spacing:.14em;text-transform:uppercase;color:#55627D;margin-top:.8cqw}
+
+/* Narrow card: stack the two columns so text stays readable */
+@container (max-width:560px){
+  .mvcard{padding:16px 16px 0;min-height:0}
+  .mvcard .swoosh{width:calc(100% + 32px);margin:18px -16px 0;height:34px}
+  .mvbody,.front .mvbody{grid-template-columns:1fr;row-gap:14px}
+  .mvcard .logo{font-size:30px}
+  .front .logo{font-size:34px}
+  .fields{gap:9px;margin-top:10px}
+  .f,.stack,.misc{font-size:12.5px}
+  .stack{gap:3px}.stack + .stack{margin-top:10px}
+  .rightcol{padding-top:0}
+  .contactico{gap:8px;margin-top:10px}
+  .ci{font-size:14px;gap:10px}
+  .frontinfo{text-align:left;padding-bottom:0}
+  .frontinfo .biz{font-size:22px}.frontinfo .who{font-size:14px}.frontinfo .occ{font-size:11px}
+}
+@media (prefers-reduced-motion:no-preference){.entry{animation:rise .25s ease-out both}}
+@keyframes rise{from{transform:translateY(4px)}to{transform:none}}
+</style>
+
+<header class="mast">
+  <div class="wrap">
+    <div>
+      <h1>Man Village <span>Rolodex</span></h1>
+      <p>Every member card in one place, filed A to Z by occupation. Search for the trade you need or add your own card.</p>
+    </div>
+    <div class="count" id="count"><b>0</b>members</div>
+  </div>
+</header>
+
+<div class="tools">
+  <div class="wrap">
+    <div class="searchrow">
+      <label class="search" for="q">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="Search occupations: barber, plumber, realtor…" autocomplete="off">
+      </label>
+      <select id="area" class="sel" aria-label="Filter by town or service area"><option value="">All towns</option></select>
+      <select id="sort" class="sel" aria-label="Sort cards"><option value="cat">Sort: Occupation A–Z</option><option value="name">Sort: Name A–Z</option></select>
+      <button class="btn" id="jumpForm" type="button">Add your card</button>
+    </div>
+    <nav class="tabs" id="tabs" aria-label="Jump to letter"></nav>
+  </div>
+</div>
+
+<main>
+  <div class="wrap">
+    <section id="dir" aria-label="Member directory" style="min-width:0">
+      <div class="chips" id="chips"></div>
+      <div id="list"></div>
+    </section>
+
+    <aside class="panel" id="panel">
+      <div class="pcol">
+        <button class="back" type="button" id="backBtn">← Back to the rolodex</button>
+        <h2 id="formTitle">Fill out your member card</h2>
+        <p class="sub" id="formSub">Type in the form and your card fills in as you go. Save it and it's filed in the rolodex right away.</p>
+        <div class="previewlabel">Live preview · back</div>
+        <div id="preview"></div>
+        <div class="previewlabel">Live preview · front</div>
+        <div id="previewFront"></div>
+      </div>
+      <div class="fcol">
+      <form id="form" novalidate>
+        <div class="fgroup">
+          <div class="gl">Member</div>
+          <div class="field"><label for="f-name">Name <span class="req">*</span></label><input id="f-name" name="name" maxlength="60" required></div>
+          <div class="two">
+            <div class="field"><label for="f-phone">Phone</label><input id="f-phone" name="phone" inputmode="tel" maxlength="30"></div>
+            <div class="field"><label for="f-fax">Fax</label><input id="f-fax" name="fax" inputmode="tel" maxlength="30"></div>
+          </div>
+          <div class="field"><label for="f-email">Emails</label><input id="f-email" name="email" maxlength="120" placeholder="you@example.com"></div>
+          <div class="field"><label for="f-social">Social media</label><input id="f-social" name="social" maxlength="120" placeholder="@handle, IG, Facebook"></div>
+          <div class="field"><label for="f-website">Website</label><input id="f-website" name="website" maxlength="120" inputmode="url" placeholder="yourbusiness.com"></div>
+        </div>
+        <div class="fgroup">
+          <div class="gl">Business</div>
+          <div class="field"><label for="f-business">Business / organization / other</label><input id="f-business" name="business" maxlength="80"></div>
+          <div class="field"><label for="f-category">Occupation / category <span class="req">*</span></label><input id="f-category" name="category" list="catlist" maxlength="50" required placeholder="e.g. Barber, Electrician, Real Estate"><datalist id="catlist"></datalist></div>
+          <div class="field"><label for="f-area">Town / service area</label><input id="f-area" name="area" list="arealist" maxlength="60" placeholder="Town, county, or region you serve"><datalist id="arealist"></datalist></div>
+          <div class="field"><label for="f-activities">What the business or organization does</label><textarea id="f-activities" name="activities" maxlength="220"></textarea></div>
+          <div class="field"><label for="f-misc">Misc</label><input id="f-misc" name="misc" maxlength="120"></div>
+        </div>
+        <div class="status" id="status" role="status"></div>
+        <div class="formacts">
+          <button class="btn" type="submit" id="saveBtn">Save to rolodex</button>
+          <button class="btn ghost" type="button" id="resetBtn">Clear form</button>
+        </div>
+        <div class="note" id="accessNote" hidden></div>
+      </form>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script>
+(function(){
+  const FIELDS=["name","phone","fax","email","social","website","business","category","area","activities","misc"];
+  const $=s=>document.querySelector(s);
+  const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const tidy=s=>String(s??"").trim().replace(/\s+/g," ");
+  const titleCase=s=>tidy(s).replace(/\b([a-z])/g,(m,c)=>c.toUpperCase());
+
+  const LOGO_ICON=`<svg viewBox="0 0 120 92" style="height:1.12em;width:auto;margin-bottom:.02em" aria-hidden="true">
+    <circle cx="25" cy="34" r="11" fill="#1460D2"/><path d="M4 92V76c0-12 9-20 21-20s21 8 21 20v16Z" fill="#1460D2"/>
+    <circle cx="95" cy="34" r="11" fill="#1460D2"/><path d="M74 92V76c0-12 9-20 21-20s21 8 21 20v16Z" fill="#1460D2"/>
+    <path d="M24 92V72c0-16 15-27 36-27s36 11 36 27v20Z" fill="#fff"/>
+    <circle cx="60" cy="20" r="18" fill="#0B2E6E"/>
+    <path d="M27 92V73c0-14 13-24 33-24s33 10 33 24v19Z" fill="#1460D2"/>
+    <path d="M50 49l10 13 10-13Z" fill="#fff"/><path d="M57 54h6l2 30-5 6-5-6Z" fill="#0B2E6E"/>
+  </svg>`;
+  const logo=()=>`<div class="logo" aria-label="Man Village Member"><div class="r1"><span class="w">Man</span>${LOGO_ICON}</div><span class="w r2">Village</span><span class="mem">MEMBER</span></div>`;
+  const SWOOSH=`<svg class="swoosh" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 52C380 112 820 104 1200 6V120H0Z" fill="#0B3A86"/>
+    <path d="M0 30C380 90 820 82 1200-14V6C820 104 380 112 0 52Z" fill="#2B80F4"/>
+    <path d="M0 52C380 112 820 104 1200 6V14C820 110 380 118 0 60Z" fill="#1460D2" opacity=".6"/></svg>`;
+  const ICON_PHONE=`<svg viewBox="0 0 24 24" fill="#fff"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1Z"/></svg>`;
+  const ICON_FAX=`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><rect x="7" y="3" width="10" height="6" rx="1"/><rect x="3" y="9" width="18" height="10" rx="2"/><path d="M7 13h2M11 13h2M15 13h2M7 16h2M11 16h2M15 16h2"/></svg>`;
+
+  const val=(v,ph)=>v?esc(v):(ph?`<span class="ph">${esc(ph)}</span>`:"");
+  const site=(v,ph)=>{
+    if(!v) return val(v,ph);
+    const href=/^https?:\/\//i.test(v)?v:"https://"+v;
+    return /^https?:\/\/[^\s/]+\.[^\s]+/i.test(href)?`<a href="${esc(href)}" target="_blank" rel="noopener" style="color:inherit">${esc(v.replace(/^https?:\/\//i,"").replace(/\/$/,""))}</a>`:esc(v);
+  };
+
+  function cardBack(m,ph){
+    return `<div class="mv"><div class="mvcard">
+      <div class="mvbody">
+        <div>
+          ${logo()}
+          <div class="fields">
+            <div class="f"><span class="l">Name:</span><span class="v">${val(m.name,ph&&"Your name")}</span></div>
+            <div class="f"><span class="l">Phone:</span><span class="v">${val(m.phone,ph&&"(973) 555-0100")}</span></div>
+            <div class="f"><span class="l">Emails:</span><span class="v">${val(m.email,ph&&"you@example.com")}</span></div>
+            <div class="f"><span class="l">Social media:</span><span class="v">${val(m.social,ph&&"@yourhandle")}</span></div>
+            <div class="f"><span class="l">Website:</span><span class="v">${site(m.website,ph&&"yourbusiness.com")}</span></div>
+          </div>
+        </div>
+        <div class="rightcol">
+          <div class="stack"><span class="l">Business / Organization / Other:</span><span class="v">${val(m.business,ph&&"Business name")}</span></div>
+          <div class="stack"><span class="l">Business/Organization Category:</span><span class="v">${val(m.category,ph&&"Occupation")}</span></div>
+          <div class="stack"><span class="l">Town / Service area:</span><span class="v">${val(m.area,ph&&"Where you work")}</span></div>
+          <div class="stack"><span class="l">Activities / What business or organization does:</span><span class="v multi">${val(m.activities,ph&&"What you do, in a sentence or two")}</span></div>
+        </div>
+      </div>
+      <div class="f misc"><span class="l">Misc:</span><span class="v">${val(m.misc)}</span></div>
+      ${SWOOSH}
+    </div></div>`;
+  }
+  function cardFront(m){
+    return `<div class="mv"><div class="mvcard front">
+      <div class="mvbody">
+        <div>
+          ${logo()}
+          <div class="contactico">
+            <div class="ci"><span class="dot">${ICON_PHONE}</span><span>${val(m.phone)}</span></div>
+            <div class="ci"><span class="dot">${ICON_FAX}</span><span>${val(m.fax)}</span></div>
+          </div>
+        </div>
+        <div class="frontinfo">
+          <div class="biz">${esc(m.business||m.name)}</div>
+          ${m.business?`<div class="who">${esc(m.name)}</div>`:""}
+          <div class="occ">${esc(m.category)}${m.area?" · "+esc(m.area):""}</div>
+          ${m.website?`<div class="who" style="font-size:max(10px,1.6cqw)">${site(m.website)}</div>`:""}
+        </div>
+      </div>
+      ${SWOOSH}
+    </div></div>`;
+  }
+
+  // ---------- state ----------
+  let members=[]; // {id, ...data}
+  let db=null, user=null, uid=null, owner=false, canWrite=null, writeBlocked=false;
+  let editingId=null, query="", activeCat=null, activeArea="", sortBy="cat";
+  const cmp=(a,b)=>(a||"").localeCompare(b||"",undefined,{sensitivity:"base"});
+  const keyOf=m=>sortBy==="name"?m.name:m.category;
+  const flipped=new Set(); let armedDelete=null, armTimer=null;
+
+  const letterOf=c=>{const ch=(c||"").trim().charAt(0).toUpperCase();return /[A-Z]/.test(ch)?ch:"#"};
+  const LETTERS=["#",..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
+
+  function filtered(){
+    const q=query.toLowerCase().trim();
+    return members.filter(m=>{
+      if(activeCat && (m.category||"").toLowerCase()!==activeCat) return false;
+      if(activeArea && (m.area||"").toLowerCase()!==activeArea) return false;
+      if(!q) return true;
+      return ["category","business","activities","name","area","misc"].some(k=>(m[k]||"").toLowerCase().includes(q));
+    }).sort((a,b)=>sortBy==="name"?(cmp(a.name,b.name)||cmp(a.category,b.category)):(cmp(a.category,b.category)||cmp(a.name,b.name)));
+  }
+  const mayEdit=m=>owner||(uid&&m.id===uid);
+
+  function render(){
+    const list=filtered();
+    $("#count").innerHTML=`<b>${members.length}</b>${members.length===1?"member":"members"}`;
+
+    // categories (chips + datalist)
+    const cats=new Map();
+    members.forEach(m=>{const k=(m.category||"").toLowerCase();if(!k)return;const e=cats.get(k)||{label:m.category,n:0};e.n++;cats.set(k,e)});
+    const sortedCats=[...cats.entries()].sort((a,b)=>a[1].label.localeCompare(b[1].label,undefined,{sensitivity:"base"}));
+    $("#chips").innerHTML=sortedCats.length?`<button class="chip${activeCat?"":" on"}" data-cat="">All occupations</button>`+sortedCats.map(([k,e])=>`<button class="chip${activeCat===k?" on":""}" data-cat="${esc(k)}">${esc(e.label)}<small>${e.n}</small></button>`).join(""):"";
+    $("#catlist").innerHTML=sortedCats.map(([,e])=>`<option value="${esc(e.label)}"></option>`).join("");
+
+    // towns (filter + datalist)
+    const areas=new Map();
+    members.forEach(m=>{const k=(m.area||"").toLowerCase();if(k&&!areas.has(k))areas.set(k,m.area)});
+    const sortedAreas=[...areas.entries()].sort((a,b)=>cmp(a[1],b[1]));
+    if(activeArea&&!areas.has(activeArea))activeArea="";
+    $("#area").innerHTML=`<option value="">All towns</option>`+sortedAreas.map(([k,l])=>`<option value="${esc(k)}"${k===activeArea?" selected":""}>${esc(l)}</option>`).join("");
+    $("#arealist").innerHTML=sortedAreas.map(([,l])=>`<option value="${esc(l)}"></option>`).join("");
+
+    // groups
+    const groups=new Map();
+    list.forEach(m=>{const L=letterOf(keyOf(m));if(!groups.has(L))groups.set(L,[]);groups.get(L).push(m)});
+    $("#tabs").innerHTML=LETTERS.map(L=>`<button type="button" data-l="${L}" ${groups.has(L)?"":"disabled"} aria-label="Jump to ${L==="#"?"other":L}">${L}</button>`).join("");
+
+    if(!members.length){
+      $("#list").innerHTML=`<div class="empty"><h3>The rolodex is empty</h3><p>Member cards appear here, filed A to Z by occupation, as soon as someone saves one. Fill out the form to add the first card.</p><button class="btn" type="button" data-act="toform">Add the first card</button></div>`;
+      return;
+    }
+    if(!list.length){
+      $("#list").innerHTML=`<div class="empty"><h3>No members match this search</h3><p>Try a broader word, like “repair” instead of “auto body repair”, pick “All towns”, or clear the filters.</p><button class="btn ghost" type="button" data-act="clear">Clear filters</button></div>`;
+      return;
+    }
+    let html="";
+    for(const L of LETTERS){
+      const g=groups.get(L); if(!g) continue;
+      const catNames=sortBy==="name"?[`${g.length} ${g.length===1?"member":"members"}`]:[...new Set(g.map(m=>m.category))];
+      html+=`<section class="group" id="L-${L==="#"?"other":L}"><div class="grouphead"><div class="letter">${L}</div><div class="cats">${esc(catNames.join(" · "))}</div><div class="rule"></div></div><div class="cardgrid">`;
+      for(const m of g){
+        const front=flipped.has(m.id);
+        html+=`<article class="entry" data-id="${esc(m.id)}">
+          <div class="bar"><span class="cat">${esc(sortBy==="name"?m.name:m.category)}${m.area?` <span style="color:var(--muted);font-weight:600">· ${esc(m.area)}</span>`:""}</span>
+            <span class="acts">
+              <button class="btn ghost small" data-act="flip" data-id="${esc(m.id)}">${front?"Show details":"Flip to front"}</button>
+              ${mayEdit(m)?`<button class="btn ghost small" data-act="edit" data-id="${esc(m.id)}">Edit</button>
+              <button class="btn danger small${armedDelete===m.id?" armed":""}" data-act="del" data-id="${esc(m.id)}">${armedDelete===m.id?"Tap again to delete":"Delete"}</button>`:""}
+            </span></div>
+          ${front?cardFront(m):cardBack(m)}
+        </article>`;
+      }
+      html+=`</div></section>`;
+    }
+    $("#list").innerHTML=html;
+  }
+
+  // ---------- form ----------
+  const form=$("#form");
+  const readForm=()=>{const o={};FIELDS.forEach(k=>o[k]=tidy(form.elements[k].value));if(form.elements.activities)o.activities=tidy(form.elements.activities.value);return o};
+  const renderPreview=()=>{const d=readForm();$("#preview").innerHTML=cardBack(d,true);$("#previewFront").innerHTML=cardFront({...d,business:d.business||(d.name?"":"Business name"),category:d.category||"Occupation"})};
+  const setStatus=(t,cls)=>{const s=$("#status");s.textContent=t;s.className="status"+(cls?" "+cls:"")};
+
+  function loadIntoForm(m){
+    FIELDS.forEach(k=>form.elements[k].value=m?.[k]||"");
+    editingId=m?.id||null;
+    $("#formTitle").textContent=editingId?"Edit member card":"Fill out your member card";
+    $("#saveBtn").textContent=editingId?"Save changes":"Save to rolodex";
+    renderPreview();
+  }
+  function resetForm(){
+    // a non-owner member has exactly one card: keep editing it
+    const mine=!owner&&uid?members.find(m=>m.id===uid):null;
+    loadIntoForm(mine||null);setStatus("");
+  }
+  form.addEventListener("input",renderPreview);
+  $("#resetBtn").addEventListener("click",()=>{FIELDS.forEach(k=>form.elements[k].value="");editingId=owner?null:editingId;renderPreview();setStatus("")});
+
+  form.addEventListener("submit",async e=>{
+    e.preventDefault();
+    const data=readForm();
+    if(!data.name){setStatus("Add a name before saving.","err");form.elements.name.focus();return}
+    if(!data.category){setStatus("Add an occupation so the card can be filed.","err");form.elements.category.focus();return}
+    data.category=titleCase(data.category);
+    if(!db){setStatus("Saving isn't available in this view. Open the rolodex signed in to claude.ai to save cards.","err");return}
+    if(writeBlocked){setStatus("Your access lets you browse but not add cards. Ask the rolodex owner to invite you as an editor.","err");return}
+    const id=editingId||(owner?null:uid);
+    if(!id&&!owner){setStatus("Sign in to save your card.","err");return}
+    const ref=id?db.doc("members/"+id):db.collection("members").doc();
+    const existing=members.find(m=>m.id===ref.id);
+    const body={...data,createdBy:existing?.createdBy||uid||null,createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
+    $("#saveBtn").disabled=true;setStatus("Saving…");
+    try{
+      await ref.set(body);
+      setStatus(existing?"Card updated.":"Card saved and filed under "+letterOf(data.category)+".","ok");
+      if(owner){editingId=null;FIELDS.forEach(k=>form.elements[k].value="");$("#formTitle").textContent="Fill out a member card";$("#saveBtn").textContent="Save to rolodex";renderPreview()}
+      else {editingId=uid;$("#formTitle").textContent="Edit member card";$("#saveBtn").textContent="Save changes"}
+      setTimeout(()=>{if(document.body.dataset.view==="form"){setView("home");setStatus("")}},1200);
+    }catch(err){
+      if(err?.code==="invalid_argument"&&canWrite!==true){writeBlocked=true;applyAccess();setStatus("Your access lets you browse but not add cards. Ask the rolodex owner to invite you as an editor.","err")}
+      else if(err?.code==="quota_exceeded")setStatus("The rolodex is full. Delete old cards to make room.","err");
+      else setStatus("Couldn't save the card. Check your connection and try again.","err");
+    }finally{$("#saveBtn").disabled=false}
+  });
+
+  // ---------- list interactions ----------
+  $("#q").addEventListener("input",e=>{query=e.target.value;render()});
+  $("#chips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;activeCat=b.dataset.cat||null;render()});
+  $("#tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-l]");if(!b||b.disabled)return;
+    document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
+    const el=document.getElementById("L-"+(b.dataset.l==="#"?"other":b.dataset.l));el&&el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"start"})});
+  const setView=v=>{document.body.dataset.view=v;window.scrollTo(0,0)};
+  const toForm=()=>{setView("form");setTimeout(()=>form.elements.name.focus({preventScroll:true}),50)};
+  $("#jumpForm").addEventListener("click",toForm);
+  $("#backBtn").addEventListener("click",()=>setView("home"));
+  $("#area").addEventListener("change",e=>{activeArea=e.target.value;render()});
+  $("#sort").addEventListener("change",e=>{sortBy=e.target.value;render()});
+  setView(location.hash==="#join"?"form":"home");
+  $("#list").addEventListener("click",async e=>{
+    const b=e.target.closest("button[data-act]");if(!b)return;
+    const act=b.dataset.act,id=b.dataset.id;
+    if(act==="toform")return toForm();
+    if(act==="clear"){query="";activeCat=null;activeArea="";$("#q").value="";return render()}
+    if(act==="flip"){flipped.has(id)?flipped.delete(id):flipped.add(id);return render()}
+    if(act==="edit"){loadIntoForm(members.find(m=>m.id===id));setStatus("");return toForm()}
+    if(act==="del"){
+      if(armedDelete!==id){armedDelete=id;clearTimeout(armTimer);armTimer=setTimeout(()=>{armedDelete=null;render()},4000);return render()}
+      armedDelete=null;
+      try{await db.doc("members/"+id).delete();if(editingId===id)loadIntoForm(null)}catch{alertList("Couldn't delete that card. Try again.")}
+    }
+  });
+  function alertList(t){setStatus(t,"err")}
+
+  function applyAccess(){
+    const n=$("#accessNote");
+    if(!db){n.hidden=false;n.textContent="You're viewing the rolodex without saving. Open it while signed in to claude.ai to add your card.";return}
+    if(writeBlocked||canWrite===false){n.hidden=false;n.textContent="You can browse and search the rolodex. To add your own card, ask the rolodex owner to invite you as an editor.";$("#saveBtn").disabled=true;return}
+    n.hidden=true;$("#saveBtn").disabled=false;
+    if(owner){$("#formSub").textContent="As the owner you can add cards for any member and edit or delete every card."}
+  }
+
+  renderPreview();render();
+
+  // ---------- capabilities ----------
+  (async()=>{
+    const [d,u]=await Promise.all([window.claude?.use?.("db")??null,window.claude?.use?.("user")??null]);
+    db=d;user=u;
+    if(user){
+      try{uid=await user.id()}catch{}
+      try{owner=!!(await user.isOwner())}catch{}
+      try{canWrite=await user.can("data.write")}catch{canWrite=null}
+    }
+    applyAccess();
+    if(!db){render();return}
+    db.collection("members").onSnapshot(snap=>{
+      members=snap.docs.filter(s=>s.exists).map(s=>({id:s.id,...s.data()}));
+      if(!owner&&uid&&!editingId&&!readForm().name){const mine=members.find(m=>m.id===uid);if(mine)loadIntoForm(mine)}
+      render();
+    },()=>{setStatus("The rolodex stopped syncing. Reload the page to reconnect.","err")});
+  })();
+})();
+</script>
